@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Mi Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900">
+    <!-- Navbar -->
+    <nav class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg border-b border-white border-opacity-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <i class="fas fa-boxes text-purple-400 text-2xl mr-3"></i>
+                    <span class="text-white font-bold text-xl">Mi Inventario</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-300">
+                        <i class="fas fa-user mr-2"></i><%= user.nombre %>
+                    </span>
+                    <a href="/auth/logout" class="bg-red-500 bg-opacity-20 text-red-400 px-4 py-2 rounded-lg hover:bg-opacity-30 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Salir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <h1 class="text-3xl font-bold text-white">
+                <i class="fas fa-box mr-3 text-purple-400"></i>Productos
+            </h1>
+            <button onclick="openModal()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-pink-600 transition transform hover:scale-105">
+                <i class="fas fa-plus mr-2"></i>Nuevo Producto
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-6 border border-white border-opacity-20">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-500 bg-opacity-20 rounded-lg">
+                        <i class="fas fa-boxes text-blue-400 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-400 text-sm">Total Productos</p>
+                        <p id="totalProducts" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-6 border border-white border-opacity-20">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-500 bg-opacity-20 rounded-lg">
+                        <i class="fas fa-cubes text-green-400 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-400 text-sm">Stock Total</p>
+                        <p id="totalStock" class="text-2xl font-bold text-white">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-6 border border-white border-opacity-20">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-500 bg-opacity-20 rounded-lg">
+                        <i class="fas fa-dollar-sign text-yellow-400 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-400 text-sm">Valor Total</p>
+                        <p id="totalValue" class="text-2xl font-bold text-white">$0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl border border-white border-opacity-20 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-white bg-opacity-5">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-gray-300 font-medium">Producto</th>
+                            <th class="px-6 py-4 text-left text-gray-300 font-medium hidden sm:table-cell">Descripción</th>
+                            <th class="px-6 py-4 text-left text-gray-300 font-medium">Precio</th>
+                            <th class="px-6 py-4 text-left text-gray-300 font-medium">Stock</th>
+                            <th class="px-6 py-4 text-center text-gray-300 font-medium">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTable" class="divide-y divide-white divide-opacity-10">
+                        <!-- Products loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="hidden text-center py-12">
+                <i class="fas fa-box-open text-gray-500 text-5xl mb-4"></i>
+                <p class="text-gray-400">No hay productos registrados</p>
+                <p class="text-gray-500 text-sm mt-2">Haz clic en "Nuevo Producto" para agregar uno</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 rounded-2xl p-8 w-full max-w-md border border-white border-opacity-20 transform transition-all">
+            <h2 id="modalTitle" class="text-2xl font-bold text-white mb-6">
+                <i class="fas fa-box mr-2 text-purple-400"></i>Nuevo Producto
+            </h2>
+            <form id="productForm" class="space-y-4">
+                <input type="hidden" id="productId">
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2">
+                        <i class="fas fa-tag mr-2"></i>Nombre
+                    </label>
+                    <input type="text" id="nombre" required
+                        class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Nombre del producto">
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-medium mb-2">
+                        <i class="fas fa-align-left mr-2"></i>Descripción
+                    </label>
+                    <textarea id="descripcion" rows="3"
+                        class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Descripción del producto (opcional)"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">
+                            <i class="fas fa-dollar-sign mr-2"></i>Precio
+                        </label>
+                        <input type="number" id="precio" step="0.01" min="0" required
+                            class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 text-sm font-medium mb-2">
+                            <i class="fas fa-cubes mr-2"></i>Stock
+                        </label>
+                        <input type="number" id="stock" min="0" value="0"
+                            class="w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="0">
+                    </div>
+                </div>
+                <div class="flex space-x-4 pt-4">
+                    <button type="button" onclick="closeModal()"
+                        class="flex-1 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-times mr-2"></i>Cancelar
+                    </button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition">
+                        <i class="fas fa-save mr-2"></i>Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="toastMessage">Operación exitosa</span>
+    </div>
+
+    <script>
+        let products = [];
+
+        // Show toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-4 right-4 ${isError ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // Load products
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                products = await response.json();
+                renderProducts();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showToast('Error al cargar productos', true);
+            }
+        }
+
+        // Render products table
+        function renderProducts() {
+            const tbody = document.getElementById('productsTable');
+            const emptyState = document.getElementById('emptyState');
+
+            if (products.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = products.map(p => `
+                <tr class="hover:bg-white hover:bg-opacity-5 transition">
+                    <td class="px-6 py-4 text-white font-medium">${escapeHtml(p.nombre)}</td>
+                    <td class="px-6 py-4 text-gray-300 hidden sm:table-cell">${escapeHtml(p.descripcion) || '<span class="text-gray-500">Sin descripción</span>'}</td>
+                    <td class="px-6 py-4 text-green-400 font-medium">$${parseFloat(p.precio).toFixed(2)}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-sm ${
+                            p.stock > 10 ? 'bg-green-500 bg-opacity-20 text-green-400' : 
+                            p.stock > 0 ? 'bg-yellow-500 bg-opacity-20 text-yellow-400' : 
+                            'bg-red-500 bg-opacity-20 text-red-400'
+                        }">
+                            ${p.stock} uds
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="editProduct(${p.id})" class="text-blue-400 hover:text-blue-300 mx-2 p-2" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteProduct(${p.id}, '${escapeHtml(p.nombre)}')" class="text-red-400 hover:text-red-300 mx-2 p-2" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('totalStock').textContent = products.reduce((sum, p) => sum + parseInt(p.stock || 0), 0);
+            document.getElementById('totalValue').textContent = '$' + products.reduce((sum, p) => sum + (parseFloat(p.precio || 0) * parseInt(p.stock || 0)), 0).toFixed(2);
+        }
+
+        // Modal functions
+        function openModal(product = null) {
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modalTitle').innerHTML = product 
+                ? '<i class="fas fa-edit mr-2 text-blue-400"></i>Editar Producto' 
+                : '<i class="fas fa-box mr-2 text-purple-400"></i>Nuevo Producto';
+            document.getElementById('productId').value = product?.id || '';
+            document.getElementById('nombre').value = product?.nombre || '';
+            document.getElementById('descripcion').value = product?.descripcion || '';
+            document.getElementById('precio').value = product?.precio || '';
+            document.getElementById('stock').value = product?.stock || 0;
+            document.getElementById('nombre').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('productForm').reset();
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Edit product
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) openModal(product);
+        }
+
+        // Delete product
+        async function deleteProduct(id, nombre) {
+            if (!confirm(`¿Estás seguro de eliminar "${nombre}"?`)) return;
+
+            try {
+                const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showToast('Producto eliminado correctamente');
+                    loadProducts();
+                } else {
+                    showToast('Error al eliminar producto', true);
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                showToast('Error al eliminar producto', true);
+            }
+        }
+
+        // Form submit
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('productId').value;
+            const data = {
+                nombre: document.getElementById('nombre').value.trim(),
+                descripcion: document.getElementById('descripcion').value.trim(),
+                precio: parseFloat(document.getElementById('precio').value),
+                stock: parseInt(document.getElementById('stock').value) || 0
+            };
+
+            if (!data.nombre) {
+                showToast('El nombre es requerido', true);
+                return;
+            }
+
+            try {
+                const url = id ? `/api/products/${id}` : '/api/products';
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showToast(id ? 'Producto actualizado' : 'Producto creado');
+                    closeModal();
+                    loadProducts();
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Error al guardar', true);
+                }
+            } catch (error) {
+                console.error('Error saving product:', error);
+                showToast('Error al guardar producto', true);
+            }
+        });
+
+        // Initial load
+        loadProducts();
+    </script>
+</body>
+</html>
